@@ -35,9 +35,8 @@ class MarkdownEditActivity : AppCompatActivity(), MarkdownEditContract.View {
         btnStrike = findViewById(R.id.btn_strike)
         btnSave = findViewById(R.id.btn_save)
 
-        presenter = MarkdownEditPresenter(this, this, filePath)
+        presenter = MarkdownEditPresenter(this, filePath)
 
-        // Загрузка содержимого файла
         try {
             val content = File(filePath).readText()
             etContent.setText(content)

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
+import android.util.Log
 import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -69,7 +70,7 @@ class MarkdownViewActivity : AppCompatActivity(), MarkdownViewContract.View {
                     return
                 }
             }
-
+            Log.d("FilePath", "Resolved file path: $filePath")
             // Чтение файла
             val content = readFileContent(filePath ?: run {
                 showError("Invalid file path")
@@ -295,7 +296,8 @@ class MarkdownViewActivity : AppCompatActivity(), MarkdownViewContract.View {
     private fun addImage(image: MarkdownElement.Image) {
         val basePath = File(filePath).parent ?: ""
         val resolvedUrl = resolveImagePath(image.url, basePath)
-
+        Log.d("ImageResolution",
+            "Original: ${image.url}, Resolved: $resolvedUrl, Base: $basePath")
         ImageView(this).apply {
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).apply {
                 setMargins(0, 8.dp, 0, 8.dp)
@@ -331,13 +333,25 @@ class MarkdownViewActivity : AppCompatActivity(), MarkdownViewContract.View {
             imagePath.startsWith("/") -> "file://$imagePath"
 
             else -> {
-                // Проверяем все возможные места
-                val localFile = File(basePath, imagePath)
-                when {
-                    localFile.exists() -> "file://${localFile.absolutePath}"
-                    assets.list("")?.contains(imagePath) == true -> "asset://$imagePath"
-                    else -> imagePath // Возвращаем как есть (может быть raw GitHub ссылкой)
+                val possiblePaths = listOf(
+                    File(File(filePath).parent, imagePath), // Относительно MD-файла
+                    File(basePath, imagePath),              // Переданный basePath
+                    File(imagePath)                         // Абсолютный путь
+                )
+
+                for (file in possiblePaths) {
+                    if (file.exists()) {
+                        return "file://${file.absolutePath}"
+                    }
                 }
+
+                // Проверка assets в последнюю очередь
+                if (assets.list("")?.contains(imagePath) == true) {
+                    return "asset://$imagePath"
+                }
+
+                // Возвращаем оригинальный путь, если ничего не найдено
+                imagePath
             }
         }
     }
