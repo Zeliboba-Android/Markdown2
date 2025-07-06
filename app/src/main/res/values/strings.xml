@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Markdown2</string>
+    <string name="edit">Edit</string>
+    <string name="edit_text">Edit</string>
+    <string name="markdown_redactor">Markdown redactor</string>
+    <string name="select_file">Select File</string>
+    <string name="enter_url">Enter URL</string>
+    <string name="load_from_url">Load from URL</string>
+</resources>
